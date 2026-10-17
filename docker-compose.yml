@@ -18,5 +18,6 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - ./files:/files
+      - ./scripts:/scripts:ro
 volumes:
   n8n_data:
