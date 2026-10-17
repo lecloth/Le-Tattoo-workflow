@@ -1,0 +1,100 @@
+{
+  "name": "setup-zernio-queue",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b9c963c8-ffaf-4a72-b477-7b3fae736fad",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "accounts",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-zernio.late",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3676b3a6-678f-4c29-bb1f-94f955baf4a2",
+      "name": "List social accounts",
+      "credentials": {
+        "lateApi": {
+          "id": "EtqMuTsypxFHSGfp",
+          "name": "Zernio – Wajih test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "   https://zernio.com/api/v1/queue/slots",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "lateApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=   {\n     \"profileId\": \"{{ $json.accounts[0].profileId._id }}\",\n     \"name\": \"Daily 8pm\",\n     \"timezone\": \"Africa/Tunis\",\n     \"slots\": [\n       { \"dayOfWeek\": 0, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 1, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 2, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 3, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 4, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 5, \"time\": \"20:00\" },\n       { \"dayOfWeek\": 6, \"time\": \"20:00\" }\n     ]\n   }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "cc3ab8bc-1d8b-4dc2-b8d8-ea8c4eb93cfa",
+      "name": "HTTP Request",
+      "credentials": {
+        "lateApi": {
+          "id": "EtqMuTsypxFHSGfp",
+          "name": "Zernio – Wajih test"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "List social accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List social accounts": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "03261e15-dd08-42ed-8d1b-bf8d70328f04",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac2d1a77db3c632a8c885293461f48f8034168da15e272626ad47f7a7a6ed68a"
+  },
+  "nodeGroups": [],
+  "id": "OJpAt5GSqjqGhwDH",
+  "tags": []
+}
