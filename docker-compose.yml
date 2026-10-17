@@ -1,6 +1,7 @@
 services:
   n8n:
-    image: docker.n8n.io/n8nio/n8n:latest
+    build: .
+    image: mosquito-n8n:local
     container_name: mosquito-n8n
     restart: unless-stopped
     ports:
@@ -12,6 +13,8 @@ services:
       - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
       - N8N_PAYLOAD_SIZE_MAX=512
       - N8N_FORMDATA_FILE_SIZE_MAX=1024
+      - NODES_EXCLUDE=[]
+      - N8N_RESTRICT_FILE_ACCESS_TO=/files
     volumes:
       - n8n_data:/home/node/.n8n
       - ./files:/files
