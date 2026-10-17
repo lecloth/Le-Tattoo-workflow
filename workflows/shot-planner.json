@@ -1,0 +1,215 @@
+{
+  "name": "shot-planner",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Mosquito – Shot Planner",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Tattoo description",
+              "fieldType": "textarea",
+              "placeholder": "e.g. small rose with a dagger through it",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Placement",
+              "placeholder": "e.g. inner forearm",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Size",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Small"
+                  },
+                  {
+                    "option": "Medium"
+                  },
+                  {
+                    "option": "Large"
+                  },
+                  {
+                    "option": "Big piece / sleeve"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Style",
+              "placeholder": "e.g. fine line, blackwork, realism",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Client vibe",
+              "placeholder": "e.g. nervous first-timer, chill regular"
+            },
+            {
+              "fieldLabel": "Shot list language",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "English"
+                  },
+                  {
+                    "option": "French"
+                  },
+                  {
+                    "option": "Darija"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c3e1b866-4407-49c8-8f61-2b969a7e9d92",
+      "name": "On form submission",
+      "webhookId": "fcf4633a-275e-4a3e-b865-194a2ef1062e"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.8-flash",
+          "mode": "list",
+          "cachedResultName": "Gemini 3.8 Flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are the content planner for Mosquito Tattoo, a tattoo shop in Tunisia. The artist films on his phone, alone, while working. Plan the filming for this tattoo so the clips edit into one vertical TikTok / Instagram Reel.\n\nTattoo: {{ $json['Tattoo description'] }}\nPlacement: {{ $json['Placement'] }}\nSize: {{ $json['Size'] }}\nStyle: {{ $json['Style'] }}\nClient vibe: {{ $json['Client vibe'] || 'not given' }}\n\nHard rules (the editing pipeline depends on these):\n- Exactly two uploads. 1) PROCESS clip: the tattooing itself, 1 to 5 minutes total. It will be sped up, so steady framing matters more than variety. 2) REVEAL clip: the finished tattoo, 5 to 10 seconds, wiped clean, slow camera move, best light of the session.\n- Vertical 9:16, rear camera, 1080p or 4K, 30fps, phone on a stand or mount. No talking or music needed; music is added in the edit.\n- Never show the client's face unless they have agreed.\n- Never assume the client's gender. Use neutral wording (\"this client\", \"they\", \"first-timer\").\nWrite everything in {{ $json['Shot list language'] }}. If that is Darija, write it in Latin letters (like \"3aslema\"). He reads this on his phone between clients, so keep it short and scannable.\n\nFormat as Markdown with exactly these sections and nothing before or after:\n## Setup\n(phone position, angle, lighting: max 4 bullets)\n## Process clip\n(what to capture, in order, with rough durations: max 6 bullets)\n## Reveal clip\n(how to film the finished piece: max 4 bullets)\n## Hook idea\n(one line of on-screen text for the first 2 seconds, plus one alternative)\n## Upload\n(the two files to upload: \"process\" and \"reveal\", one line each)\nEvery section is a bullet list: start every line under a heading with \"- \". Do not suggest file names."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2916d4a0-8c5f-4218-a1cb-f4cd8d6dabba",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ULmSMT5AOPEaa8D0",
+          "name": "Gemini – Mosquito"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.content.parts[0].text }}",
+        "destinationKey": "html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "fb52a87d-c83c-4a0a-9c19-910cc4fe2686",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "=   <div style=\"max-width:640px;margin:24px auto;padding:0 16px;font-family:system-ui,-apple-system,sans-serif;line-height:1.55;color:#111;font-size:17px\">\n   <h1 style=\"font-size:24px;margin-bottom:4px\">🦟 Shot plan</h1>\n   <p style=\"color:#666;margin-top:0\">Film it like this, then upload the two clips.</p>\n   {{ $json.html }}\n   </div>"
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        816,
+        0
+      ],
+      "id": "41b92f8a-0d15-4db9-ab94-345da368c94d",
+      "name": "Form",
+      "webhookId": "86c97ec1-78b2-4e6d-8121-e8ab1f78e30b"
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Tattoo description": "small rose with a dagger through it, black and grey",
+          "Placement": "inner forearm",
+          "Size": "Small",
+          "Style": "fine line",
+          "Client vibe": "nervous first-timer",
+          "Shot list language": "English",
+          "submittedAt": "2026-10-17T11:18:12.128+01:00",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b3db35c7-3b21-4520-aaff-e0d8dcb9d8a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac2d1a77db3c632a8c885293461f48f8034168da15e272626ad47f7a7a6ed68a"
+  },
+  "nodeGroups": [],
+  "id": "pqURdQFKrNVPhERG",
+  "tags": []
+}
