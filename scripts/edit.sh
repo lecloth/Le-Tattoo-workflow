@@ -1,5 +1,5 @@
 #!/bin/sh
-# Mosquito Tattoo - edit recipe (Decision 18, edit spec v1)
+# Mosquito Tattoo - edit recipe (Decision 18, edit spec v1; logo top-right per Decision 21)
 # Turns <job>/process.mp4 + <job>/reveal.mp4 (+ optional <job>/hook.txt) into <job>/edited.mp4
 # No hook.txt, or an empty one = no text on the video (Decision 20).
 # Usage (inside the n8n container):  sh /scripts/edit.sh /files/jobs/<job id>
@@ -19,9 +19,12 @@ XFADE="${XFADE:-0.3}"             # crossfade process -> reveal, seconds
 HOOK_SECS="${HOOK_SECS:-3}"       # hook on screen for the first N seconds
 HOOK_SIZE="${HOOK_SIZE:-84}"      # hook font size (px)
 HOOK_BORDER="${HOOK_BORDER:-7}"   # black outline thickness (px)
+HOOK_Y="${HOOK_Y:-400}"           # vertical centre of the hook (px from top), clear of the logo
 LOGO_PCT="${LOGO_PCT:-14}"        # logo width, % of video width
 LOGO_OPACITY="${LOGO_OPACITY:-0.85}"
-LOGO_MARGIN="${LOGO_MARGIN:-40}"  # gap from the edges (px)
+LOGO_POS="${LOGO_POS:-tr}"        # tr = top-right (Decision 21), tl, br, bl
+LOGO_MARGIN="${LOGO_MARGIN:-40}"  # gap from the side edge (px)
+LOGO_TOP="${LOGO_TOP:-165}"       # gap from the top for tr/tl, clear of the apps' top bar (px)
 MUSIC="${MUSIC:-/files/assets/music/track1.mp3}"
 MUSIC_START="${MUSIC_START:-0}"   # skip this many seconds of the track (quiet intros)
 FADE_IN="${FADE_IN:-0.5}"         # music fade in, seconds
@@ -57,12 +60,20 @@ if [ -f "$HOOK" ] && grep -q '[^[:space:]]' "$HOOK"; then
   HOOK_NOTE="hook on"
   TEXT="[v0]drawtext=fontfile=${FONT}:textfile=${HOOK}:expansion=none:text_shaping=1:\
 fontsize=${HOOK_SIZE}:fontcolor=white:borderw=${HOOK_BORDER}:bordercolor=black:\
-line_spacing=14:text_align=C:x=(w-text_w)/2:y=(h/6)-(text_h/2):\
+line_spacing=14:text_align=C:x=(w-text_w)/2:y=${HOOK_Y}-(text_h/2):\
 enable='lt(t,${HOOK_SECS})':alpha='if(lt(t,${HOOK_FADE}),1,max(0,(${HOOK_SECS}-t)/0.3))'[v1]"
 else
   HOOK_NOTE="no hook"
   TEXT="[v0]null[v1]"
 fi
+
+case "$LOGO_POS" in
+  tr) LXY="W-w-${LOGO_MARGIN}:${LOGO_TOP}" ;;
+  tl) LXY="${LOGO_MARGIN}:${LOGO_TOP}" ;;
+  br) LXY="W-w-${LOGO_MARGIN}:H-h-${LOGO_MARGIN}" ;;
+  bl) LXY="${LOGO_MARGIN}:H-h-${LOGO_MARGIN}" ;;
+  *) echo "BAD LOGO_POS: $LOGO_POS (use tr, tl, br or bl)" >&2; exit 1 ;;
+esac
 
 FIT="scale=${OUT_W}:${OUT_H}:force_original_aspect_ratio=increase,crop=${OUT_W}:${OUT_H},setsar=1"
 
@@ -72,7 +83,7 @@ FILTER="\
 [p][r]xfade=transition=fade:duration=${XFADE}:offset=${OFFSET}[v0];\
 ${TEXT};\
 [2:v]scale=${LOGO_W}:-1,format=rgba,colorchannelmixer=aa=${LOGO_OPACITY}[lg];\
-[v1][lg]overlay=W-w-${LOGO_MARGIN}:H-h-${LOGO_MARGIN},format=yuv420p[v];\
+[v1][lg]overlay=${LXY},format=yuv420p[v];\
 [3:a]atrim=duration=${TOTAL},asetpts=PTS-STARTPTS,aresample=48000,\
 afade=t=in:d=${FADE_IN},afade=t=out:st=${FO_START}:d=${FADE_OUT}[a]"
 
